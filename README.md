@@ -422,3 +422,4 @@ Người dùng có thể truy cập trực tiếp API thông qua đường dẫn
 ```text
 https://technews-api-234032679535.asia-southeast1.run.app/docs
 ```
+![alt text](image-2.png)
