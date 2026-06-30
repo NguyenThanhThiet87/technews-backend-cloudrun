@@ -126,3 +126,141 @@ http://localhost:8080
 http://localhost:8080
 ```
 ![alt text](image.png)
+
+---
+
+## Day 3: Advanced Docker & Artifact Registry
+
+---
+
+# 1. Tối ưu hóa Docker Image bằng Multi-stage Build
+
+Tiến hành nâng cấp `Dockerfile` sang kiến trúc **Multi-stage Build** nhằm tối ưu dung lượng Image và tăng tính bảo mật.
+
+## Stage 1 - Builder
+
+- Sử dụng môi trường ảo Python (`venv`) để cô lập các thư viện phụ thuộc.
+- Cài đặt toàn bộ dependencies cần thiết cho quá trình build.
+- Chuẩn bị các thành phần (artifacts) phục vụ cho Runtime Stage.
+
+## Stage 2 - Runtime
+
+- Sử dụng image `python:3.13-slim` nhằm giảm kích thước Docker Image.
+- Chỉ sao chép các thành phần cần thiết từ Builder sang Runtime.
+- Loại bỏ compiler, cache và các file tạm không cần thiết.
+
+> **Kết quả:** Docker Image có kích thước nhỏ hơn, bảo mật hơn và thời gian triển khai nhanh hơn.
+
+---
+
+# 2. Thiết lập Google Artifact Registry
+
+Đã tạo thành công Docker Repository trên Google Cloud.
+
+| Thuộc tính | Giá trị |
+|------------|----------|
+| Repository Name | `technews-repo` |
+| Repository Format | Docker |
+| Region | `asia-southeast1` (Singapore) |
+
+Khu vực lưu trữ được lựa chọn đồng bộ với hạ tầng mạng đã thiết lập từ **Day 1**, giúp giảm độ trễ khi triển khai.
+
+---
+
+# 3. Xác thực Docker với Google Cloud
+
+Để Docker trên máy cục bộ có thể truy cập Artifact Registry, tiến hành cấu hình thông qua **Google Cloud CLI**.
+
+## Cấu hình
+
+```bash
+gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+```
+
+## Kết quả
+
+Sau khi thực hiện lệnh, hệ thống hiển thị thông báo:
+
+```text
+gcloud credential helpers already registered correctly
+```
+
+Thông báo trên xác nhận Docker đã được cấu hình xác thực thành công với Google Cloud.
+
+---
+
+# 4. Chiến lược quản lý phiên bản Docker Image
+
+Dự án áp dụng quy chuẩn đặt tên Image theo chuẩn của Google Artifact Registry.
+
+## Quy ước đặt tên
+
+```text
+[REGION]-docker.pkg.dev/technews-500407/[REPOSITORY]/[IMAGE_NAME]:[TAG]
+```
+
+### Ví dụ
+
+```text
+asia-southeast1-docker.pkg.dev/my-project/technews-repo/technews-api:v1
+```
+
+## Chiến lược phát hành
+
+- `v1`
+- `v2`
+- `v3`
+- ...
+
+Mỗi phiên bản phát hành đều được gắn tag riêng nhằm:
+
+- Quản lý lịch sử phiên bản.
+- Dễ dàng rollback khi cần.
+- Hỗ trợ triển khai CI/CD.
+
+## Gắn tag Image
+
+```bash
+docker tag technews-api:v1 \
+asia-southeast1-docker.pkg.dev/technews-500407/technews-repo/technews-api:v1
+```
+
+---
+
+# 5. Đẩy Docker Image lên Artifact Registry
+
+Sau khi gắn tag, tiến hành đẩy Docker Image lên Google Cloud.
+
+## Push Image
+
+```bash
+docker push asia-southeast1-docker.pkg.dev/technews-500407/technews-repo/technews-api:v1
+```
+
+## Kết quả
+
+Docker Image được upload thành công lên Artifact Registry.
+
+Artifact Registry hiển thị đầy đủ các thông tin:
+
+- Repository
+- Image Name
+- Tag
+- Digest
+- Dung lượng Image
+- Thời gian upload
+
+Image đã sẵn sàng để sử dụng trong các bước triển khai Cloud tiếp theo.
+
+---
+
+# ✅ Kết quả đạt được
+
+- Hoàn thành tối ưu Docker Image bằng **Multi-stage Build**.
+- Thiết lập thành công **Google Artifact Registry**.
+- Docker được xác thực với Google Cloud.
+- Áp dụng chiến lược quản lý phiên bản Docker Image.
+- Push thành công Docker Image lên Artifact Registry.
+- Sẵn sàng phục vụ cho các bước triển khai **Kubernetes** và **CI/CD** ở các giai đoạn tiếp theo.
+
+![alt text](image-1.png)

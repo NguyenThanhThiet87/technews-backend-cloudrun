@@ -1,9 +1,19 @@
-FROM python:3.13
-WORKDIR /usr/local/app
+FROM python:3.13 AS builder
+WORKDIR /app
+
+# create and active environment (venv)
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Install the application dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.13-slim AS runtime
+WORKDIR /user/local/app
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy in the source code
 COPY . .
@@ -14,3 +24,5 @@ RUN useradd app
 USER app
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+
