@@ -933,3 +933,126 @@ Sau khi cập nhật quyền, thực hiện Deploy lại ứng dụng.
 - Cấu hình IAM theo nguyên tắc Least Privilege.
 - Nắm được quy trình Rollback khi triển khai gặp lỗi.
 - Hoàn thiện quy trình CI/CD cho ứng dụng Technews trên Google Cloud.
+
+
+# Day 8: SST.dev Core Concepts & Project Initialization
+
+## 🎯 Mục tiêu
+
+- Hiểu khái niệm **Infrastructure as Code (IaC)**.
+- Làm quen với framework **SST (Serverless Stack)**.
+- Khởi tạo cấu trúc dự án hạ tầng theo chuẩn SST.
+- Chuẩn bị nền tảng cho việc triển khai Cloud Infrastructure bằng code.
+
+---
+
+# 1. Lý thuyết cốt lõi
+
+## Infrastructure as Code (IaC)
+
+Infrastructure as Code (IaC) là phương pháp quản lý hạ tầng thông qua mã nguồn thay vì thao tác thủ công trên giao diện (Click-Ops).
+
+### Lợi ích chính:
+
+- Đồng nhất môi trường (dev, staging, prod).
+- Dễ dàng kiểm soát phiên bản hạ tầng.
+- Tái sử dụng và mở rộng nhanh chóng.
+- Giảm sai sót do thao tác thủ công.
+
+---
+
+## SST.dev Core Concepts
+
+SST (Serverless Stack) là framework xây dựng hạ tầng cloud dựa trên **Pulumi**, cho phép định nghĩa infrastructure bằng TypeScript.
+
+### Các đặc điểm chính:
+
+- **Infrastructure as Code bằng ngôn ngữ lập trình**
+  - Viết hạ tầng bằng TypeScript thay vì YAML/JSON.
+  
+- **Quản lý môi trường theo stage**
+  - Tự động tạo các môi trường:
+    - `dev`
+    - `staging`
+    - `prod`
+
+- **Tích hợp cloud-native**
+  - Hỗ trợ AWS (chính), có thể mở rộng theo kiến trúc serverless hiện đại.
+
+---
+
+# 2. Khởi tạo dự án SST
+
+Dự án được khởi tạo theo cấu trúc chuẩn của SST nhằm đảm bảo khả năng mở rộng và bảo trì lâu dài.
+
+---
+
+## 📁 Cấu trúc thư mục
+
+```text
+.
+├── .sst/               # Metadata, logs và cấu hình nội bộ SST
+├── infra/              # Định nghĩa toàn bộ tài nguyên hạ tầng (IaC)
+├── sst.config.ts       # File cấu hình chính của SST project
+├── package.json        # Dependencies và scripts của dự án
+└── README.md           # Tài liệu mô tả dự án
+```
+
+---
+
+## 🧠 Ý nghĩa từng thành phần
+
+### `.sst/`
+
+- Chứa trạng thái nội bộ của SST.
+- Log triển khai và metadata hệ thống.
+
+### `infra/`
+
+- Nơi định nghĩa toàn bộ hạ tầng cloud.
+- Ví dụ:
+  - API
+  - Database
+  - Storage
+  - Lambda functions
+
+### `sst.config.ts`
+
+- File cấu hình trung tâm của dự án.
+- Khai báo app, stage, region và provider.
+
+### `package.json`
+
+- Quản lý dependencies.
+- Chứa scripts như `dev`, `deploy`, `build`.
+
+---
+
+# 3. Tư duy triển khai hạ tầng
+
+SST giúp chuyển đổi tư duy từ:
+
+```text
+Click Ops → Infrastructure as Code
+```
+
+Thành:
+
+```text
+Code-driven Infrastructure
+```
+
+Điều này giúp:
+
+- Kiểm soát toàn bộ hệ thống bằng Git.
+- Dễ dàng rollback hạ tầng.
+- Tự động hóa deployment.
+
+---
+
+# ✅ Kết quả đạt được
+
+- Hiểu khái niệm Infrastructure as Code (IaC).
+- Làm quen với SST.dev framework.
+- Khởi tạo cấu trúc dự án chuẩn cho cloud infrastructure.
+- Chuẩn bị nền tảng cho việc triển khai hệ thống serverless ở các bước tiếp theo.
