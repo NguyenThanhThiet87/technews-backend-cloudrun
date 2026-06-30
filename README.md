@@ -264,3 +264,162 @@ Image đã sẵn sàng để sử dụng trong các bước triển khai Cloud t
 - Sẵn sàng phục vụ cho các bước triển khai **Kubernetes** và **CI/CD** ở các giai đoạn tiếp theo.
 
 ![alt text](image-1.png)
+
+---
+
+# Day 4: Deploying Containers to Cloud Run
+
+## 🎯 Mục tiêu
+
+- Triển khai thành công Docker Container từ **Google Artifact Registry** lên **Google Cloud Run**.
+- Cho phép ứng dụng truy cập công khai thông qua Internet.
+- Hiểu cơ chế hoạt động của dịch vụ Serverless trên Google Cloud.
+
+> **Public Service URL:**  
+> `https://<your-cloud-run-service-url>`
+
+---
+
+# 1. Tìm hiểu Google Cloud Run
+
+Cloud Run là dịch vụ **Serverless Container Platform** của Google Cloud, cho phép triển khai trực tiếp Docker Container mà không cần quản lý máy chủ.
+
+## Mô hình thực thi (Execution Model)
+
+- Không cần quản lý máy chủ hoặc hạ tầng.
+- Chỉ cần triển khai Docker Image, Cloud Run sẽ tự động vận hành ứng dụng.
+
+## Tự động mở rộng (Auto Scaling)
+
+Cloud Run tự động:
+
+- Tăng số lượng instance khi lưu lượng truy cập tăng.
+- Giảm số lượng instance khi lưu lượng giảm.
+- **Scale to Zero** khi không có request nhằm tối ưu chi phí.
+
+## Quản lý phiên bản (Revisions)
+
+Mỗi lần triển khai một Docker Image mới:
+
+- Cloud Run tự động tạo một **Revision** mới.
+- Cho phép chuyển đổi hoặc rollback về phiên bản cũ nếu cần.
+
+---
+
+# 2. Triển khai Docker Image lên Cloud Run
+
+## Bước 1 - Khởi tạo Service
+
+- Truy cập **Google Cloud Console**.
+- Chọn **Cloud Run**.
+- Nhấn **Create Service**.
+
+---
+
+## Bước 2 - Chọn Container Image
+
+Tại mục **Container Image URL**:
+
+- Chọn **SELECT**.
+- Truy cập **Artifact Registry**.
+- Chọn repository `technews-repo`.
+- Chọn image:
+
+```text
+technews-api:v1
+```
+
+---
+
+## Bước 3 - Cấu hình Service
+
+Thiết lập các thông tin cơ bản:
+
+| Thuộc tính | Giá trị |
+|------------|----------|
+| Service Name | `technews-api` |
+| Region | `asia-southeast1` (Singapore) |
+
+---
+
+## Bước 4 - Cấu hình Authentication
+
+Trong phần **Authentication**, chọn:
+
+```text
+Allow unauthenticated invocations
+```
+
+Cấu hình này cho phép:
+
+- API được truy cập công khai.
+- Không yêu cầu xác thực người dùng.
+- Phù hợp với REST API phục vụ các ứng dụng bên ngoài.
+
+---
+
+## Bước 5 - Cấu hình Container
+
+Mở mục:
+
+```text
+Containers, Networking, Security
+```
+
+### Container Port
+
+Thiết lập:
+
+```text
+8080
+```
+
+Port phải trùng với cổng mà ứng dụng khai báo trong Dockerfile.
+
+### Environment Variables & Secrets
+
+Trong tab **Variables & Secrets**:
+
+- Thiết lập các biến môi trường (Environment Variables).
+- Lưu trữ thông tin nhạy cảm (Secrets) như:
+  - Database URL
+  - API Key
+  - Access Token
+  - Secret Key
+
+Không nên hard-code các thông tin này trong mã nguồn.
+
+---
+
+## Bước 6 - Hoàn tất triển khai
+
+- Nhấn **CREATE**.
+- Chờ Cloud Run tạo Service.
+- Sau khi hoàn tất, hệ thống sẽ cung cấp một **Public Service URL**.
+
+Ví dụ:
+
+```text
+https://technews-api-xxxxx-uc.a.run.app
+```
+
+Người dùng có thể truy cập trực tiếp API thông qua đường dẫn này.
+
+---
+
+# ✅ Kết quả đạt được
+
+- Hiểu nguyên lý hoạt động của Google Cloud Run.
+- Triển khai thành công Docker Image từ Artifact Registry.
+- Cấu hình Service với Authentication phù hợp.
+- Thiết lập Container Port và Environment Variables.
+- Ứng dụng hoạt động ổn định trên môi trường Serverless.
+- Nhận được Public Service URL để phục vụ truy cập và tích hợp với các hệ thống khác.
+
+
+- Tài liệu Swagger API có thể truy cập qua:
+
+```text
+https://technews-api-234032679535.asia-southeast1.run.app/docs
+```
+![alt text](image-2.png)
