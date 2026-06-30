@@ -791,5 +791,4 @@ Trong quá trình cấu hình CI Pipeline, rút ra một số kinh nghiệm:
 - Lưu các thông tin nhạy cảm trong **GitHub Secrets**, không hard-code vào mã nguồn.
 - Sử dụng `github.sha` để gắn tag Docker Image giúp quản lý phiên bản hiệu quả và hỗ trợ rollback.
 - Kiểm tra Workflow sau mỗi lần commit để phát hiện lỗi sớm.
-
 ---
