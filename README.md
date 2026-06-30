@@ -792,3 +792,144 @@ Trong quá trình cấu hình CI Pipeline, rút ra một số kinh nghiệm:
 - Sử dụng `github.sha` để gắn tag Docker Image giúp quản lý phiên bản hiệu quả và hỗ trợ rollback.
 - Kiểm tra Workflow sau mỗi lần commit để phát hiện lỗi sớm.
 ---
+
+
+# Day 7: Continuous Deployment (CD)
+
+## 🎯 Mục tiêu
+
+- Hiểu quy trình **Continuous Deployment (CD)**.
+- Tự động triển khai ứng dụng lên **Google Cloud Run** sau mỗi lần cập nhật mã nguồn.
+- Thiết lập quyền truy cập theo nguyên tắc **Least Privilege**.
+- Nắm được quy trình **Rollback** khi triển khai gặp sự cố.
+- Tích lũy kinh nghiệm xử lý các lỗi thường gặp trong quá trình triển khai.
+
+---
+
+# 1. Tổng quan kiến thức
+
+## Continuous Deployment (CD)
+
+Continuous Deployment (CD) là quá trình tự động triển khai phiên bản mới của ứng dụng sau khi quá trình Continuous Integration (CI) hoàn thành thành công.
+
+Lợi ích:
+
+- Giảm thao tác triển khai thủ công.
+- Rút ngắn thời gian phát hành phiên bản mới.
+- Đảm bảo quy trình triển khai nhất quán.
+- Hạn chế sai sót do con người.
+
+---
+
+## GitHub Actions
+
+GitHub Actions tiếp tục được sử dụng để thực hiện toàn bộ quy trình triển khai tự động.
+
+Sau mỗi lần `git push` lên nhánh `main`, Workflow sẽ tự động:
+
+- Build Docker Image.
+- Push Image lên Artifact Registry.
+- Deploy phiên bản mới lên Cloud Run.
+
+---
+
+# 2. Luồng Continuous Deployment
+
+Pipeline được thực hiện theo trình tự:
+
+```text
+Source Code
+      │
+      ▼
+Build Docker Image
+      │
+      ▼
+Push to Artifact Registry
+      │
+      ▼
+Deploy to Cloud Run
+      │
+      ▼
+Application Online
+```
+
+Toàn bộ quy trình được kích hoạt tự động khi có thay đổi trên nhánh:
+
+```text
+main
+```
+
+---
+
+# 3. Quản lý quyền truy cập (IAM)
+
+Để Pipeline hoạt động ổn định và đảm bảo an toàn, Service Account được cấp các quyền cần thiết theo nguyên tắc **Least Privilege**.
+
+| IAM Role | Mục đích |
+|-----------|----------|
+| Artifact Registry Writer | Đẩy Docker Image lên Artifact Registry |
+| Artifact Registry Reader | Cho phép Cloud Run tải Docker Image |
+| Cloud Run Developer | Triển khai và cập nhật Cloud Run Service |
+
+Việc chỉ cấp đúng các quyền cần thiết giúp giảm thiểu rủi ro bảo mật trong quá trình vận hành.
+
+---
+
+# 4. Quy trình Rollback
+
+Nếu phiên bản mới gặp lỗi sau khi triển khai, có thể khôi phục phiên bản trước thông qua Cloud Run.
+
+Các bước thực hiện:
+
+1. Truy cập **Google Cloud Console**.
+2. Chọn **Cloud Run**.
+3. Chọn Service:
+
+```text
+technews-api
+```
+
+4. Mở tab **Revisions**.
+5. Chọn Revision đang hoạt động ổn định.
+6. Chọn **Manage Traffic**.
+7. Điều chỉnh **100% Traffic** về Revision cũ.
+
+Sau khi hoàn tất, toàn bộ người dùng sẽ được chuyển sang sử dụng phiên bản ổn định trước đó.
+
+---
+
+# 5. Troubleshooting
+
+## Lỗi: Image not found
+
+Đây là lỗi thường gặp khi Cloud Run không thể tải Docker Image từ Artifact Registry.
+
+### Nguyên nhân
+
+Cloud Run Service Account chưa được cấp quyền:
+
+```text
+Artifact Registry Reader
+```
+
+### Cách khắc phục
+
+- Kiểm tra Service Account đang được Cloud Run sử dụng.
+- Truy cập **IAM & Admin**.
+- Gán thêm quyền:
+
+```text
+Artifact Registry Reader
+```
+
+Sau khi cập nhật quyền, thực hiện Deploy lại ứng dụng.
+
+---
+
+# ✅ Kết quả đạt được
+
+- Hiểu quy trình Continuous Deployment (CD).
+- Tự động triển khai ứng dụng từ GitHub Actions lên Cloud Run.
+- Cấu hình IAM theo nguyên tắc Least Privilege.
+- Nắm được quy trình Rollback khi triển khai gặp lỗi.
+- Hoàn thiện quy trình CI/CD cho ứng dụng Technews trên Google Cloud.
