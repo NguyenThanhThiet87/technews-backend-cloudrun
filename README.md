@@ -423,3 +423,183 @@ Người dùng có thể truy cập trực tiếp API thông qua đường dẫn
 https://technews-api-234032679535.asia-southeast1.run.app/docs
 ```
 ![alt text](image-2.png)
+
+---
+
+# Day 5: Infrastructure as a Service (IaaS) - Networking & Compute Engine
+
+## 🎯 Mục tiêu
+
+- Hiểu mô hình **Infrastructure as a Service (IaaS)** trên Google Cloud.
+- Xây dựng hệ thống mạng riêng bằng **Virtual Private Cloud (VPC)**.
+- Cấu hình **Firewall Rules** theo nguyên tắc **Least Privilege**.
+- Triển khai máy ảo trên **Compute Engine**.
+- Thiết lập môi trường hạ tầng Cloud an toàn và tối ưu chi phí.
+
+---
+
+# 1. Tổng quan kiến thức
+
+## Virtual Private Cloud (VPC)
+
+**Virtual Private Cloud (VPC)** là mạng riêng ảo trên Google Cloud, cho phép cô lập các tài nguyên trong một hệ thống mạng độc lập.
+
+Lợi ích:
+
+- Chủ động quản lý dải địa chỉ IP.
+- Kiểm soát định tuyến mạng.
+- Tăng tính bảo mật so với mạng mặc định (`default`).
+- Dễ dàng mở rộng hạ tầng trong tương lai.
+
+---
+
+## Firewall Rules
+
+Firewall Rules hoạt động theo nguyên tắc **Least Privilege** (Đặc quyền tối thiểu), chỉ cho phép các kết nối thực sự cần thiết.
+
+Kết hợp với **Network Tags** giúp:
+
+- Quản lý nhiều máy ảo dễ dàng.
+- Áp dụng chính sách bảo mật theo từng nhóm tài nguyên.
+- Hạn chế truy cập trái phép.
+
+---
+
+## Compute Engine
+
+Compute Engine là dịch vụ **Infrastructure as a Service (IaaS)** của Google Cloud.
+
+Người dùng có toàn quyền:
+
+- Quản lý hệ điều hành.
+- Cài đặt phần mềm.
+- Cấu hình CPU, RAM và Storage.
+- Kiểm soát toàn bộ máy chủ.
+
+---
+
+# 2. Thiết lập Virtual Private Cloud
+
+Tạo một mạng riêng phục vụ cho dự án Technews.
+
+| Thuộc tính | Giá trị |
+|------------|----------|
+| Network Name | `technews-vpc` |
+| Mode | Custom |
+| Subnet | `technews-subnet-asia` |
+| Region | `asia-southeast1` |
+| CIDR Range | `10.0.0.0/24` |
+
+Mục đích:
+
+- Tách biệt hoàn toàn với mạng mặc định của Google Cloud.
+- Chủ động quản lý địa chỉ IP.
+- Tạo nền tảng cho việc mở rộng hệ thống.
+
+---
+
+# 3. Cấu hình Firewall Rules
+
+Tạo Firewall Rule:
+
+```text
+technews-allow-web-ssh
+```
+
+Firewall được áp dụng thông qua **Network Tags**.
+
+## Network Tag
+
+```text
+technews-web-tag
+```
+
+Chỉ các máy ảo được gắn tag này mới chịu tác động của Firewall Rule.
+
+## Ingress Rules
+
+| Protocol | Port | Mục đích |
+|-----------|------|----------|
+| TCP | 22 | SSH |
+| TCP | 80 | HTTP |
+| TCP | 443 | HTTPS |
+
+Nguồn truy cập:
+
+```text
+0.0.0.0/0
+```
+
+Firewall chỉ mở các cổng cần thiết nhằm đảm bảo nguyên tắc **Least Privilege**.
+
+---
+
+# 4. Triển khai Compute Engine VM
+
+Tạo máy ảo phục vụ thực hành.
+
+| Thuộc tính | Giá trị |
+|------------|----------|
+| VM Name | `technews-vm` |
+| Machine Type | `e2-micro` |
+| Operating System | Debian GNU/Linux |
+
+## Network
+
+Máy ảo được kết nối với:
+
+- VPC: `technews-vpc`
+- Subnet: `technews-subnet-asia`
+
+## Network Tag
+
+```text
+technews-web-tag
+```
+
+Tag này giúp Firewall tự động áp dụng đúng chính sách bảo mật.
+
+---
+
+# 5. Kiểm tra kết nối
+
+Sau khi triển khai, tiến hành kiểm tra:
+
+- Máy ảo truy cập Internet thành công.
+- Kiểm tra kết nối bằng lệnh:
+
+```bash
+ping google.com
+```
+
+- Kết nối SSH thành công đến máy ảo.
+- Xác nhận các Firewall Rules hoạt động đúng như cấu hình.
+
+---
+
+# 6. Quản lý chi phí
+
+Sau khi hoàn thành thực hành:
+
+- Chuyển máy ảo `technews-vm` sang trạng thái:
+
+```text
+STOP
+```
+
+Việc dừng VM giúp:
+
+- Tránh phát sinh chi phí Compute Engine.
+- Tối ưu ngân sách trong quá trình học tập và thử nghiệm.
+
+---
+
+# ✅ Kết quả đạt được
+
+- Hiểu mô hình Infrastructure as a Service (IaaS).
+- Thiết lập thành công Virtual Private Cloud (VPC).
+- Cấu hình Firewall Rules theo nguyên tắc Least Privilege.
+- Triển khai thành công máy ảo Compute Engine.
+- Kiểm tra thành công khả năng kết nối mạng và SSH.
+- Quản lý tài nguyên hiệu quả bằng cách dừng máy ảo sau khi sử dụng.
+![alt text](image-3.png)
