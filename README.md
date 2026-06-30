@@ -603,3 +603,192 @@ Việc dừng VM giúp:
 - Kiểm tra thành công khả năng kết nối mạng và SSH.
 - Quản lý tài nguyên hiệu quả bằng cách dừng máy ảo sau khi sử dụng.
 ![alt text](image-3.png)
+
+
+# Day 6: GitHub Actions Fundamentals (Continuous Integration)
+
+## 🎯 Mục tiêu
+
+- Hiểu quy trình **Continuous Integration (CI)**.
+- Tự động hóa quá trình build Docker Image bằng **GitHub Actions**.
+- Tự động đẩy Docker Image lên **Google Artifact Registry**.
+- Quản lý thông tin nhạy cảm bằng **GitHub Secrets**.
+- Xây dựng CI Pipeline phục vụ cho quá trình triển khai sau này.
+
+---
+
+# 1. Tổng quan kiến thức
+
+## Continuous Integration (CI)
+
+Continuous Integration (CI) là quá trình tự động xây dựng và kiểm tra ứng dụng mỗi khi có thay đổi trên mã nguồn.
+
+Lợi ích:
+
+- Phát hiện lỗi sớm.
+- Đảm bảo code luôn ở trạng thái sẵn sàng triển khai.
+- Giảm thao tác thủ công.
+- Chuẩn hóa quy trình phát triển phần mềm.
+
+---
+
+## GitHub Actions
+
+GitHub Actions là nền tảng tự động hóa được tích hợp sẵn trên GitHub.
+
+Cho phép:
+
+- Build ứng dụng.
+- Chạy kiểm thử.
+- Build Docker Image.
+- Deploy lên Cloud.
+- Thực hiện các workflow tự động khi có sự kiện xảy ra.
+
+---
+
+## GitHub Secrets
+
+GitHub Secrets được sử dụng để lưu trữ các thông tin nhạy cảm như:
+
+- Service Account Key
+- API Key
+- Access Token
+- Password
+
+Các giá trị này sẽ được mã hóa và sử dụng trong Pipeline mà không cần ghi trực tiếp vào mã nguồn.
+
+---
+
+# 2. Luồng hoạt động của CI Pipeline
+
+Pipeline được định nghĩa trong:
+
+```text
+.github/workflows/ci.yml
+```
+
+Quy trình thực hiện gồm các bước:
+
+## Bước 1 - Checkout Source Code
+
+Runner tải toàn bộ source code từ GitHub Repository.
+
+---
+
+## Bước 2 - Xác thực với Google Cloud
+
+Sử dụng Service Account được lưu trong GitHub Secrets để xác thực với Google Cloud.
+
+Secret sử dụng:
+
+```text
+GCP_SA_KEY
+```
+
+---
+
+## Bước 3 - Cấu hình Docker
+
+Docker được cấu hình để có quyền truy cập vào Google Artifact Registry.
+
+```bash
+gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+```
+
+---
+
+## Bước 4 - Build Docker Image
+
+GitHub Actions tự động build Docker Image bằng Dockerfile của dự án.
+
+Image được gắn tag theo mã Commit:
+
+```text
+${{ github.sha }}
+```
+
+Việc sử dụng Commit SHA giúp:
+
+- Mỗi phiên bản Image là duy nhất.
+- Dễ dàng truy xuất lịch sử.
+- Hỗ trợ rollback khi cần.
+
+---
+
+## Bước 5 - Push Image lên Artifact Registry
+
+Sau khi build thành công, Docker Image được tự động đẩy lên Google Artifact Registry.
+
+---
+
+# 3. Nội dung Workflow
+
+Đường dẫn:
+
+```text
+.github/workflows/ci.yml
+```
+
+```yaml
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+          -t asia-southeast1-docker.pkg.dev/[PROJECT_ID]/technews-repo/technews-api:${{ github.sha }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push \
+          asia-southeast1-docker.pkg.dev/[PROJECT_ID]/technews-repo/technews-api:${{ github.sha }}
+```
+
+---
+
+# 4. Kết quả
+
+Pipeline đã thực hiện thành công các bước:
+
+- Checkout Source Code.
+- Xác thực với Google Cloud.
+- Build Docker Image.
+- Push Image lên Google Artifact Registry.
+
+Trên GitHub Actions, Workflow hiển thị:
+
+![alt text](image-4.png)
+
+Docker Image mới đã được lưu trữ trong Artifact Registry và sẵn sàng cho bước triển khai.
+
+---
+
+# 5. Kinh nghiệm thực tế
+
+Trong quá trình cấu hình CI Pipeline, rút ra một số kinh nghiệm:
+
+- Đảm bảo Service Account được cấp quyền **Artifact Registry Writer** để tránh lỗi `Permission Denied`.
+- Lưu các thông tin nhạy cảm trong **GitHub Secrets**, không hard-code vào mã nguồn.
+- Sử dụng `github.sha` để gắn tag Docker Image giúp quản lý phiên bản hiệu quả và hỗ trợ rollback.
+- Kiểm tra Workflow sau mỗi lần commit để phát hiện lỗi sớm.
+---
