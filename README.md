@@ -1056,3 +1056,77 @@ Code-driven Infrastructure
 - Làm quen với SST.dev framework.
 - Khởi tạo cấu trúc dự án chuẩn cho cloud infrastructure.
 - Chuẩn bị nền tảng cho việc triển khai hệ thống serverless ở các bước tiếp theo.
+
+---
+
+# Day 9: SST.dev + Cloud Run Infrastructure
+
+## 🎯 Mục tiêu
+
+- Mapping SST constructs (các thành phần của SST) sang các dịch vụ của GCP.
+- Định nghĩa Cloud Run Service sử dụng SST (Infrastructure as Code - IaC).
+- Triển khai hạ tầng tự động qua SST thay vì dùng giao diện (no console click-ops).
+- Xử lý lỗi (Debug) trong quá trình triển khai và tìm hiểu giới hạn của Framework.
+- Lưu lại hạ tầng kiến trúc.
+
+---
+
+# 1. Định nghĩa hạ tầng (Infrastructure as Code) với SST
+
+Thay vì vào Google Cloud Console và click chuột để tạo Cloud Run như **Day 4**, chúng ta sử dụng SST v3 kết hợp thư viện `@pulumi/gcp` để viết mã cấu hình hạ tầng.
+---
+
+# 2. Quy trình triển khai (Deployment)
+
+Để triển khai hệ thống thông qua đoạn code trên, các bước thực hiện bao gồm:
+
+### Bước 1: Thiết lập xác thực (Authentication)
+
+GCP và SST cần một Service Account để cấp quyền tạo tài nguyên. Chỉ định biến môi trường trỏ tới file JSON (Service Account key đã tạo ở Day 1):
+
+```bash
+# Trên Windows PowerShell
+$env:GOOGLE_APPLICATION_CREDENTIALS="d:\Intern\GCP\news-website-test\backend\technews-500407-f25ae0cec45d.json"
+```
+
+### Bước 2: Khởi chạy lệnh Deploy
+
+Chạy lệnh của SST để tự động áp dụng (apply) hạ tầng:
+
+```bash
+npx sst deploy
+```
+
+---
+
+# 3. Troubleshooting & Kết luận (Framework Limitation)
+
+Trong quá trình triển khai, lệnh bị thất bại với lỗi sau xuất hiện trên Terminal:
+
+```text
+Error: 13 INTERNAL: Request message serialization failure: b.Va is not a function
+```
+
+### Phân tích lỗi:
+Đây **không phải là lỗi do logic code** hay cấu hình GCP sai, mà là một **bug tương thích** đã được ghi nhận của framework SST v3 (Ion) khi chạy bộ máy Pulumi ngầm (embedded Pulumi engine) kết hợp với provider `@pulumi/gcp` trên môi trường Windows. Lỗi này xảy ra ở thư viện `@grpc/grpc-js` khi SST cố gắng đọc/trả về kết quả do GCP phản hồi lại, dẫn đến việc crash toàn bộ tiến trình deploy dù tài nguyên có thể đã được đẩy lên Cloud.
+
+### Các nỗ lực đã khắc phục (Troubleshooting steps):
+1. **Dynamic Import**: Đã thử import `@pulumi/gcp` bên trong hàm `run()` thay vì top-level theo tài liệu của SST.
+2. **Version Deduplication**: Đã cài đặt cố định version của `@pulumi/pulumi` trong dự án về `3.215.0` để khớp với lõi của SST nhằm tránh lỗi xung đột phiên bản (Side-by-Side conflict).
+3. **Đơn giản hóa cấu trúc object**: Bỏ cấu hình mảng `ports` và bỏ `return Outputs` do nghi ngờ các Type không tương thích với gRPC.
+
+*(Tuy nhiên lỗi vẫn tồn tại vì xuất phát từ Core Framework)*.
+
+### 💡 Bài học thực tế rút ra:
+- **Hạn chế của công cụ**: SST ban đầu được sinh ra và tối ưu 100% cho hệ sinh thái **AWS**. Dù phiên bản SST v3 mới ra mắt có khả năng kết nối mọi Pulumi provider (bao gồm GCP), nhưng sự tương thích vẫn còn rất nhiều lỗi ngầm và chưa thực sự ổn định để sử dụng cho production.
+- **Best Practice trong dự án thực tế**: Đối với hệ sinh thái Google Cloud Platform (GCP), công cụ Infrastructure as Code (IaC) chuẩn mực công nghiệp và ổn định nhất hiện nay là **Terraform**. 
+- **Tư duy Cloud Engineer**: Việc linh hoạt phát hiện ra giới hạn của một công cụ (Framework Limitation), hiểu được nguyên nhân không phải do code của mình mà là lỗi công cụ, và biết khi nào nên đổi công cụ (ví dụ: đề xuất chuyển sang Terraform) là một kỹ năng phân tích vô cùng quan trọng của một kỹ sư hệ thống.
+
+---
+
+# ✅ Kết quả đạt được
+
+- Hoàn thành viết mã định nghĩa Cloud Run Service sử dụng SST (IaC).
+- Nắm được quy trình triển khai tự động hạ tầng thông qua command-line.
+- **Phát hiện và phân tích** thành công giới hạn hệ thống (Framework Limitation) của SST v3 khi kết nối GCP.
+- Rút ra bài học thực tiễn về tầm quan trọng của việc lựa chọn công cụ IaC phù hợp (Terraform) đối với từng nền tảng Cloud cụ thể.
